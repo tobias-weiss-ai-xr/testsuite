@@ -1,0 +1,130 @@
+# =============================================================================
+# WARNING: TEST CONFIGURATION — DO NOT USE IN PRODUCTION
+# =============================================================================
+#
+# All secrets in this file are placeholders. Before using this config:
+#   1. Generate new secrets: openssl rand -base64 32
+#   2. Replace all CHANGE_ME_* values
+#   3. Never commit real secrets to version control
+#
+# =============================================================================
+
+token_manager:
+  jwt_secret: CHANGE_ME_generate_with_openssl_rand
+  machine_auth_api_key: CHANGE_ME_generate_with_openssl_rand
+  system_user_api_key: CHANGE_ME_generate_with_openssl_rand
+  transfer_secret: CHANGE_ME_generate_with_openssl_rand
+  system_user_id: b6e7f092-df0e-4ab0-973d-f9b27f2e7c37
+  admin_user_id: 11bcfc2d-c335-4088-8b6b-db7f6c7b482a
+graph:
+  application:
+    id: 52f2cb8b-b11d-4aaa-8d77-3612ff38866a
+  events:
+    tls_insecure: true
+  spaces:
+    insecure: true
+  identity:
+    ldap:
+      bind_password: CHANGE_ME_generate_with_openssl_rand
+  service_account:
+    service_account_id: ad9f25da-2410-44de-bb1c-0e555fc15e22
+    service_account_secret: CHANGE_ME_generate_with_openssl_rand
+idp:
+  issuer: https://localhost:9200
+  ldap:
+    bind_password: CHANGE_ME_generate_with_openssl_rand
+idm:
+  service_user_passwords:
+    admin_password: CHANGE_ME_use_strong_password
+    idm_password: CHANGE_ME_generate_with_openssl_rand
+    reva_password: CHANGE_ME_generate_with_openssl_rand
+    idp_password: CHANGE_ME_generate_with_openssl_rand
+proxy:
+  oidc:
+    insecure: true
+  insecure_backends: true
+  service_account:
+    service_account_id: ad9f25da-2410-44de-bb1c-0e555fc15e22
+    service_account_secret: CHANGE_ME_generate_with_openssl_rand
+frontend:
+  app_handler:
+    insecure: true
+  archiver:
+    insecure: true
+  service_account:
+    service_account_id: ad9f25da-2410-44de-bb1c-0e555fc15e22
+    service_account_secret: CHANGE_ME_generate_with_openssl_rand
+auth_basic:
+  auth_providers:
+    ldap:
+      bind_password: CHANGE_ME_generate_with_openssl_rand
+auth_bearer:
+  auth_providers:
+    oidc:
+      insecure: true
+users:
+  drivers:
+    ldap:
+      bind_password: CHANGE_ME_generate_with_openssl_rand
+groups:
+  drivers:
+    ldap:
+      bind_password: CHANGE_ME_generate_with_openssl_rand
+ocdav:
+  insecure: true
+ocm:
+  service_account:
+    service_account_id: ad9f25da-2410-44de-bb1c-0e555fc15e22
+    service_account_secret: CHANGE_ME_generate_with_openssl_rand
+thumbnails:
+  thumbnail:
+    transfer_secret: CHANGE_ME_generate_with_openssl_rand
+    webdav_allow_insecure: true
+    cs3_allow_insecure: true
+search:
+  events:
+    tls_insecure: true
+  service_account:
+    service_account_id: ad9f25da-2410-44de-bb1c-0e555fc15e22
+    service_account_secret: CHANGE_ME_generate_with_openssl_rand
+audit:
+  events:
+    tls_insecure: true
+settings:
+  service_account_ids:
+  - ad9f25da-2410-44de-bb1c-0e555fc15e22
+sharing:
+  events:
+    tls_insecure: true
+storage_users:
+  events:
+    tls_insecure: true
+  mount_id: 1618e2f0-314f-4288-86aa-720b88a281ae
+  service_account:
+    service_account_id: ad9f25da-2410-44de-bb1c-0e555fc15e22
+    service_account_secret: CHANGE_ME_generate_with_openssl_rand
+notifications:
+  notifications:
+    events:
+      tls_insecure: true
+  service_account:
+    service_account_id: ad9f25da-2410-44de-bb1c-0e555fc15e22
+    service_account_secret: CHANGE_ME_generate_with_openssl_rand
+nats:
+  nats:
+    tls_skip_verify_client_cert: true
+gateway:
+  storage_registry:
+    storage_users_mount_id: 1618e2f0-314f-4288-86aa-720b88a281ae
+userlog:
+  service_account:
+    service_account_id: ad9f25da-2410-44de-bb1c-0e555fc15e22
+    service_account_secret: CHANGE_ME_generate_with_openssl_rand
+auth_service:
+  service_account:
+    service_account_id: ad9f25da-2410-44de-bb1c-0e555fc15e22
+    service_account_secret: CHANGE_ME_generate_with_openssl_rand
+clientlog:
+  service_account:
+    service_account_id: ad9f25da-2410-44de-bb1c-0e555fc15e22
+    service_account_secret: CHANGE_ME_generate_with_openssl_rand

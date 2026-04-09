@@ -1,0 +1,23 @@
+{
+  "server": "https://localhost:9200",
+  "apps": [
+    "files",
+    "search",
+    "text-editor",
+    "pdf-viewer",
+    "external",
+    "admin-settings",
+    "epub-reader",
+    "preview",
+    "app-store"
+  ],
+  "options": {
+    "hideSearchBar": false,
+    "disablePreviews": false,
+    "general": {
+      "displayName": "euro_Office Cloud (Test)",
+      "slogan": "E2E Test Instance",
+      "hideVersion": false
+    }
+  }
+}

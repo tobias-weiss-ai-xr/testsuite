@@ -1,0 +1,65 @@
+app_registry:
+  mimetypes:
+    - mime_type: application/vnd.openxmlformats-officedocument.wordprocessingml.document
+      extension: docx
+      name: Microsoft Word
+      description: Microsoft Word document
+      icon: ""
+      default_app: EuroOffice
+      allow_creation: true
+    - mime_type: application/vnd.openxmlformats-officedocument.wordprocessingml.template
+      extension: dotx
+      name: Microsoft Word Template
+      description: Microsoft Word template
+      icon: ""
+      default_app: EuroOffice
+      allow_creation: true
+    - mime_type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet
+      extension: xlsx
+      name: Microsoft Excel
+      description: Microsoft Excel document
+      icon: ""
+      default_app: EuroOffice
+      allow_creation: true
+    - mime_type: application/vnd.openxmlformats-officedocument.presentationml.presentation
+      extension: pptx
+      name: Microsoft PowerPoint
+      description: Microsoft PowerPoint document
+      icon: ""
+      default_app: EuroOffice
+      allow_creation: true
+    - mime_type: application/vnd.oasis.opendocument.text
+      extension: odt
+      name: OpenDocument Text
+      description: OpenDocument text document
+      icon: ""
+      default_app: EuroOffice
+      allow_creation: true
+    - mime_type: application/vnd.oasis.opendocument.spreadsheet
+      extension: ods
+      name: OpenDocument Spreadsheet
+      description: OpenDocument spreadsheet document
+      icon: ""
+      default_app: EuroOffice
+      allow_creation: true
+    - mime_type: application/vnd.oasis.opendocument.presentation
+      extension: odp
+      name: OpenDocument Presentation
+      description: OpenDocument presentation document
+      icon: ""
+      default_app: EuroOffice
+      allow_creation: true
+    - mime_type: text/csv
+      extension: csv
+      name: CSV
+      description: Comma-separated values
+      icon: ""
+      default_app: EuroOffice
+      allow_creation: true
+    - mime_type: application/pdf
+      extension: pdf
+      name: PDF
+      description: PDF document
+      icon: ""
+      default_app: EuroOffice
+      allow_creation: true

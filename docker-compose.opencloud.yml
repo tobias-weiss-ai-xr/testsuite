@@ -1,0 +1,160 @@
+# =============================================================================
+# euro_Office OpenCloud E2E Test — OCIS + eo-docs
+# =============================================================================
+#
+# Spins up OCIS with TLS connected to the already-running eo-docs Document Server.
+# Usage:
+#   docker compose -f docker-compose.opencloud.yml up -d
+#   docker compose -f docker-compose.opencloud.yml logs -f ocis
+#   docker compose -f docker-compose.opencloud.yml down -v
+#
+# Prerequisites:
+#   - eo-docs container must be running (ghcr.io/euro-office/documentserver)
+#   - Run `scripts/patch-eodocs.sh` to patch missing assets in eo-docs
+#   - TLS cert/key generated in docker/ocis/
+
+services:
+  ocis:
+    image: owncloud/ocis:latest
+    container_name: test-ocis
+    hostname: ocis
+    restart: "no"
+    entrypoint: ["sh", "-c"]
+    command: ["ocis init || true; sh /etc/ocis/patch-config.sh; exec ocis server"]
+    ports:
+      - "9200:9200"
+    environment:
+      - OCIS_DOMAIN=localhost
+      - OCIS_URL=https://localhost:9200
+
+      # TLS — enable HTTPS on the proxy (required by IDP issuer validation)
+      - PROXY_TLS=true
+      - PROXY_TRANSPORT_TLS_CERT=/tls/tls-cert.pem
+      - PROXY_TRANSPORT_TLS_KEY=/tls/tls-key.pem
+
+      # ⚠️ INSECURE flags — TESTING ONLY, never use in production
+      - OCIS_INSECURE=true
+      - PROXY_INSECURE_BACKENDS=true
+
+      # IDP issuer — must match OCIS_URL for OIDC
+      - IDP_ISSUER=https://localhost:9200
+
+      # JWT — must match eo-docs JWT_SECRET
+      # WARNING: Change these before any non-test deployment!
+      - OCIS_JWT_SECRET=${OCIS_JWT_SECRET:-CHANGE_ME_generate_with_openssl_rand}
+      - TOKEN_MANAGER_JWT_SECRET=${TOKEN_MANAGER_JWT_SECRET:-CHANGE_ME_generate_with_openssl_rand}
+
+      # Transfer secret (required by OCIS for internal service comms)
+      - OCIS_TRANSFER_SECRET=${OCIS_TRANSFER_SECRET:-CHANGE_ME_generate_with_openssl_rand}
+
+      # Machine auth API key (required by OCIS)
+      - OCIS_MACHINE_AUTH_API_KEY=${OCIS_MACHINE_AUTH_API_KEY:-CHANGE_ME_generate_with_openssl_rand}
+
+      # Auth — basic + demo users
+      - AUTHENTICATION_HANDLERS=basic
+      - IDM_CREATE_DEMO_USERS=true
+      - IDM_ADMIN_PASSWORD=${IDM_ADMIN_PASSWORD:-CHANGE_ME_use_strong_password}
+
+      # Logging
+      - OCIS_LOG_LEVEL=warn
+      - OCIS_LOG_PRETTY=true
+
+      # NATS — expose for service discovery (collaboration service needs this)
+      - NATS_NATS_HOST=0.0.0.0
+      - NATS_NATS_PORT=9233
+      - MICRO_REGISTRY_ADDRESS=127.0.0.1:9233
+
+      # Gateway — bind to all interfaces so collaboration container can reach it
+      - GATEWAY_GRPC_ADDR=0.0.0.0:9142
+
+      # Web UI
+      - WEB_UI_CONFIG_FILE=/etc/ocis/web-ui.json
+    volumes:
+      - ocis-data:/var/lib/ocis
+      - test-ocis-config:/etc/ocis
+      - ./docker/ocis/web-ui.json:/etc/ocis/web-ui.json:ro
+      - ./docker/ocis/app-registry.yaml:/etc/ocis/app-registry.yaml
+      - ./docker/ocis/patch-config.sh:/etc/ocis/patch-config.sh:ro
+      - ./docker/ocis/tls-cert.pem:/tls/tls-cert.pem:ro
+      - ./docker/ocis/tls-key.pem:/tls/tls-key.pem:ro
+    networks:
+      - eurooffice-net
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-check-certificate -qO- https://localhost:9200/health || exit 1"]
+      interval: 10s
+      timeout: 5s
+      start_period: 90s
+      retries: 30
+
+  # Collaboration service — runs as a SEPARATE container (official OCIS pattern)
+  # This serves WOPI HTTP endpoints on port 9300
+  collaboration-oo:
+    image: owncloud/ocis:latest
+    container_name: test-collaboration
+    hostname: collaboration-oo
+    restart: "no"
+    depends_on:
+      ocis:
+        condition: service_healthy
+    command: ["collaboration", "server"]
+    ports:
+      - "9300:9300"
+    environment:
+      # gRPC address for service registration
+      - COLLABORATION_GRPC_ADDR=0.0.0.0:9301
+      # HTTP address — this is where WOPI requests are served
+      - COLLABORATION_HTTP_ADDR=0.0.0.0:9300
+      # Service registry — connect to OCIS NATS
+      - MICRO_REGISTRY=nats-js-kv
+      - MICRO_REGISTRY_ADDRESS=ocis:9233
+
+      # Gateway — reach the OCIS gateway on the OCIS container
+      - GATEWAY_GRPC_ADDR=ocis:9142
+
+      # WOPI source — the URL that eo-docs uses to reach this service
+      # Must be reachable from the eo-docs container
+      - COLLABORATION_WOPI_SRC=http://test-collaboration:9300
+
+      # App config — point to eo-docs via nginx proxy
+      - COLLABORATION_APP_ADDR=http://test-nginx-proxy:8083
+      - COLLABORATION_APP_INSECURE=true  # ⚠️ TESTING ONLY
+      - COLLABORATION_APP_NAME=EuroOffice
+      - COLLABORATION_APP_PRODUCT=OnlyOffice
+      - COLLABORATION_APP_DESCRIPTION=euro_Office Document Server
+
+      # WOPI secret — must match eo-docs JWT_SECRET
+      - COLLABORATION_WOPI_SECRET=${COLLABORATION_WOPI_SECRET:-CHANGE_ME_generate_with_openssl_rand}
+
+      # Disable WOPI proof key verification (eo-docs doesn't send proof headers)
+      - COLLABORATION_APP_PROOF_DISABLE=true
+
+      # CS3 gateway communication
+      - COLLABORATION_CS3API_DATAGATEWAY_INSECURE=true  # ⚠️ TESTING ONLY
+
+      # OCIS URL — for internal API calls (use container hostname, not localhost)
+      - OCIS_URL=https://ocis:9200
+      - OCIS_INSECURE=true
+
+      # JWT — must match OCIS's OCIS_JWT_SECRET for WOPI token signing
+      - OCIS_JWT_SECRET=${OCIS_JWT_SECRET:-CHANGE_ME_generate_with_openssl_rand}
+
+      # Logging
+      - COLLABORATION_LOG_LEVEL=warn
+      - OCIS_LOG_PRETTY=true
+    volumes:
+      - test-ocis-config:/etc/ocis:ro
+      - ocis-data:/var/lib/ocis:ro
+    networks:
+      - eurooffice-net
+
+networks:
+  eurooffice-net:
+    external: true
+    name: eurooffice-test-network
+
+volumes:
+  ocis-data:
+    name: test-ocis-data
+  test-ocis-config:
+    external: true
+    name: test-ocis-config
