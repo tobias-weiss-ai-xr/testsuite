@@ -6,7 +6,7 @@ CONFIG_FILE="/etc/ocis/ocis.yaml"
 
 # 1. Fix JWT secret — ocis init generates a random one, but we need a known value
 #    for WOPI token signing to match COLLABORATION_WOPI_SECRET
-sed -i "s|^  jwt_secret:.*|  jwt_secret: mysecret|" "$CONFIG_FILE"
+sed -i "s|^  jwt_secret:.*|  jwt_secret: ${OCIS_JWT_SECRET:-CHANGE_ME_generate_with_openssl_rand}|" "$CONFIG_FILE"
 
 # 2. Add proxy additional_policies for /app-registry/
 #    Note: /app-provider/ is NOT needed — the frontend service already handles

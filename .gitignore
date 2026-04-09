@@ -4,7 +4,12 @@ node_modules/
 # Environment files
 .env
 .env.local
+.env.test
 .env.*.local
+
+# TLS certificates and keys — generate locally
+docker/ocis/tls-cert.pem
+docker/ocis/tls-key.pem
 
 # Build outputs
 coverage/

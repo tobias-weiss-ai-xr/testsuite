@@ -32,7 +32,7 @@ services:
       - PROXY_TRANSPORT_TLS_CERT=/tls/tls-cert.pem
       - PROXY_TRANSPORT_TLS_KEY=/tls/tls-key.pem
 
-      # Insecure — allow self-signed cert, HTTP backends
+      # ⚠️ INSECURE flags — TESTING ONLY, never use in production
       - OCIS_INSECURE=true
       - PROXY_INSECURE_BACKENDS=true
 
@@ -40,19 +40,20 @@ services:
       - IDP_ISSUER=https://localhost:9200
 
       # JWT — must match eo-docs JWT_SECRET
-      - OCIS_JWT_SECRET=mysecret
-      - TOKEN_MANAGER_JWT_SECRET=mysecret
+      # WARNING: Change these before any non-test deployment!
+      - OCIS_JWT_SECRET=${OCIS_JWT_SECRET:-CHANGE_ME_generate_with_openssl_rand}
+      - TOKEN_MANAGER_JWT_SECRET=${TOKEN_MANAGER_JWT_SECRET:-CHANGE_ME_generate_with_openssl_rand}
 
       # Transfer secret (required by OCIS for internal service comms)
-      - OCIS_TRANSFER_SECRET=mysecret_transfer_key_for_testing
+      - OCIS_TRANSFER_SECRET=${OCIS_TRANSFER_SECRET:-CHANGE_ME_generate_with_openssl_rand}
 
       # Machine auth API key (required by OCIS)
-      - OCIS_MACHINE_AUTH_API_KEY=machine_auth_key_for_testing
+      - OCIS_MACHINE_AUTH_API_KEY=${OCIS_MACHINE_AUTH_API_KEY:-CHANGE_ME_generate_with_openssl_rand}
 
-      # Auth — basic + demo users (admin/admin)
+      # Auth — basic + demo users
       - AUTHENTICATION_HANDLERS=basic
       - IDM_CREATE_DEMO_USERS=true
-      - IDM_ADMIN_PASSWORD=admin
+      - IDM_ADMIN_PASSWORD=${IDM_ADMIN_PASSWORD:-CHANGE_ME_use_strong_password}
 
       # Logging
       - OCIS_LOG_LEVEL=warn
@@ -116,26 +117,26 @@ services:
 
       # App config — point to eo-docs via nginx proxy
       - COLLABORATION_APP_ADDR=http://test-nginx-proxy:8083
-      - COLLABORATION_APP_INSECURE=true
+      - COLLABORATION_APP_INSECURE=true  # ⚠️ TESTING ONLY
       - COLLABORATION_APP_NAME=EuroOffice
       - COLLABORATION_APP_PRODUCT=OnlyOffice
       - COLLABORATION_APP_DESCRIPTION=euro_Office Document Server
 
       # WOPI secret — must match eo-docs JWT_SECRET
-      - COLLABORATION_WOPI_SECRET=mysecret
+      - COLLABORATION_WOPI_SECRET=${COLLABORATION_WOPI_SECRET:-CHANGE_ME_generate_with_openssl_rand}
 
       # Disable WOPI proof key verification (eo-docs doesn't send proof headers)
       - COLLABORATION_APP_PROOF_DISABLE=true
 
       # CS3 gateway communication
-      - COLLABORATION_CS3API_DATAGATEWAY_INSECURE=true
+      - COLLABORATION_CS3API_DATAGATEWAY_INSECURE=true  # ⚠️ TESTING ONLY
 
       # OCIS URL — for internal API calls (use container hostname, not localhost)
       - OCIS_URL=https://ocis:9200
       - OCIS_INSECURE=true
 
       # JWT — must match OCIS's OCIS_JWT_SECRET for WOPI token signing
-      - OCIS_JWT_SECRET=mysecret
+      - OCIS_JWT_SECRET=${OCIS_JWT_SECRET:-CHANGE_ME_generate_with_openssl_rand}
 
       # Logging
       - COLLABORATION_LOG_LEVEL=warn
@@ -149,7 +150,7 @@ services:
 networks:
   eurooffice-net:
     external: true
-    name: 54c70abdabedc566785a29ce4bcd510b025de9101ec6bee335ec7e7483affba2
+    name: eurooffice-test-network
 
 volumes:
   ocis-data:
