@@ -102,7 +102,7 @@ test.describe('WOPI Integration @headed', () => {
     expect(cfi.data.SupportsUpdate).toBe(true);
     expect(cfi.data.UserCanWrite).toBe(true);
     expect(cfi.data.SupportsLocks).toBe(true);
-    // SupportsCoauth is not returned by OCIS collaboration service
+    expect(cfi.data.SupportsCoauth).toBe(true);
 
     console.log('CheckFileInfo metadata:', JSON.stringify(cfi.data, null, 2));
   });

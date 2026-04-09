@@ -52,7 +52,7 @@ async function loginToOCIS(page, username, password) {
   
   // Wait for the final page to fully load
   await page.waitForLoadState('domcontentloaded', { timeout: 30000 });
-  await page.waitForTimeout(2000).catch(() => {});
+  await page.waitForTimeout(2000);
 }
 
 test.describe('OCIS Interactive E2E @headed', () => {
@@ -127,26 +127,24 @@ test.describe('OCIS Co-editing @headed', () => {
     const pageB = await ctxB.newPage();
 
     try {
-      // Log in both users concurrently to avoid session invalidation races
-      const [urlA, urlB] = await Promise.all([
-        loginToOCIS(pageA, 'admin', 'admin').then(() => pageA.url()),
-        loginToOCIS(pageB, 'admin', 'admin').then(() => pageB.url()),
-      ]);
-
-      console.log('User A logged in, URL:', urlA);
-      console.log('User B logged in, URL:', urlB);
-
-      await pageA.screenshot({ path: 'test-results/03-userA-logged-in.png', fullPage: true }).catch(() => {});
-      await pageB.screenshot({ path: 'test-results/04-userB-logged-in.png', fullPage: true }).catch(() => {});
+      // User A login
+      await loginToOCIS(pageA, 'admin', 'admin');
+      console.log('User A logged in, URL:', pageA.url());
+      await pageA.screenshot({ path: 'test-results/03-userA-logged-in.png', fullPage: true });
+      
+      // User B login  
+      await loginToOCIS(pageB, 'admin', 'admin'); // Use admin for both since testuser may not exist
+      console.log('User B logged in, URL:', pageB.url());
+      await pageB.screenshot({ path: 'test-results/04-userB-logged-in.png', fullPage: true });
 
       // Both should be on files page, not signin
-      expect(urlA).toContain('files');
-      expect(urlB).toContain('files');
-
+      expect(pageA.url()).toContain('files');
+      expect(pageB.url()).toContain('files');
+      
       console.log('Both users successfully logged in');
     } finally {
-      await ctxA.close().catch(() => {});
-      await ctxB.close().catch(() => {});
+      await ctxA.close();
+      await ctxB.close();
     }
   });
 });

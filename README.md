@@ -100,12 +100,38 @@ To also remove volumes (clean slate):
 | Test File | What It Tests |
 |-----------|---------------|
 | `discovery.test.js` | WOPI discovery XML structure, file extension handlers, action URLs |
+| `check-file-info.test.js` | WOPI CheckFileInfo endpoint: required fields, permission flags, capabilities, error handling |
+| `file-operations.test.js` | WOPI GetFile/PutFile: content retrieval, binary integrity, empty files, lock validation |
+| `lock-unlock.test.js` | WOPI locking: lock/unlock/refresh, concurrent lock prevention, lock transfer, GetLock |
 
 ### API Endpoints (`tests/e2e/api/`)
 
 | Test File | What It Tests |
 |-----------|---------------|
 | `companion.test.js` | `/api/health`, `/api/config` (no secrets), `/api/health/wopi`, `/setup` validation |
+
+### Security (`tests/e2e/security/`)
+
+| Test File | What It Tests |
+|-----------|---------------|
+| `input-validation.test.js` | SQL injection, path traversal, XSS, command injection, null bytes, CRLF, long input (DoS) |
+| `xss-csrf.test.js` | XSS sanitization in responses, CSRF protection, Content-Type validation, security headers |
+| `jwt.test.js` | Invalid/expired/malformed JWT tokens, unsigned tokens, wrong auth scheme, missing headers |
+
+### Edge Cases (`tests/e2e/edge/`)
+
+| Test File | What It Tests |
+|-----------|---------------|
+| `concurrency.test.js` | Concurrent file opens, concurrent writes with locking, network timeout handling, lock cleanup, high concurrency |
+
+### Document Editing (`tests/e2e/documents/`) — *requires Playwright*
+
+| Test File | What It Tests |
+|-----------|---------------|
+| `editing.spec.js` | Document open/edit/save/close via WOPI editor, persistence, concurrent instances |
+| `coediting.spec.js` | Real-time co-editing: multi-user sync, concurrent edits, conflict resolution, WebSocket handling |
+
+> **Note:** Document editing tests use `@playwright/test` and require a separate Playwright setup. They are not run by `npm test` (Jest). Run with `npx playwright test tests/e2e/documents/`.
 
 ## Configuration
 
@@ -245,7 +271,10 @@ testsuite/
 │   └── e2e/
 │       ├── health/             # Health check tests
 │       ├── wopi/               # WOPI protocol tests
-│       └── api/                # API endpoint tests
+│       ├── api/                # API endpoint tests
+│       ├── security/           # Security validation tests
+│       ├── edge/               # Concurrency and edge case tests
+│       └── documents/          # Playwright document editing tests
 ├── scripts/
 │   ├── start-test-stack.sh     # Start Docker stack
 │   ├── stop-test-stack.sh      # Stop Docker stack
