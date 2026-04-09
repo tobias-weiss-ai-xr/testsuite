@@ -1,0 +1,40 @@
+{
+  "name": "@euro-office/testsuite",
+  "version": "1.0.0",
+  "description": "End-to-end test suite for euro_Office integration components",
+  "main": "index.js",
+  "scripts": {
+    "test": "jest",
+    "test:e2e": "jest --testPathPattern=tests/e2e",
+    "test:health": "jest --testPathPattern=tests/e2e/health",
+    "test:wopi": "jest --testPathPattern=tests/e2e/wopi",
+    "test:api": "jest --testPathPattern=tests/e2e/api",
+    "lint": "eslint .",
+    "lint:fix": "eslint . --fix"
+  },
+  "keywords": [
+    "euro-office",
+    "e2e",
+    "tests",
+    "wopi",
+    "ocis",
+    "document-server"
+  ],
+  "author": "euro_Office",
+  "license": "AGPL-3.0",
+  "dependencies": {
+    "axios": "^1.6.0",
+    "dockerode": "^4.0.0",
+    "dotenv": "^16.3.1",
+    "wait-on": "^7.2.0",
+    "xml2js": "^0.6.2"
+  },
+  "devDependencies": {
+    "@jest/globals": "^29.7.0",
+    "eslint": "^8.54.0",
+    "jest": "^29.7.0"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

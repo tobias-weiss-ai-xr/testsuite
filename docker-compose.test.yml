@@ -1,0 +1,161 @@
+# =============================================================================
+# euro_Office E2E Test Stack
+# =============================================================================
+#
+# This Docker Compose file spins up the full integration stack for E2E testing:
+#   1. Document Server (built from euro_Office/core/ fork)
+#   2. OCIS (ownCloud Infinite Scale)
+#   3. eurooffice-opencloud Companion
+#
+# Usage:
+#   docker compose -f docker-compose.test.yml up -d
+#   docker compose -f docker-compose.test.yml logs -f
+#   docker compose -f docker-compose.test.yml down -v
+#
+# Health checks verify all services are ready before accepting traffic.
+
+version: '3.8'
+
+services:
+  # ===========================================================================
+  # Document Server - WOPI Client (Editor)
+  # ===========================================================================
+  documentserver:
+    build:
+      context: ./docker/documentserver
+      dockerfile: Dockerfile
+    container_name: test-documentserver
+    hostname: documentserver
+    restart: "no"  # Don't auto-restart in tests
+    ports:
+      - "8080:80"
+    environment:
+      - JWT_SECRET=${DOCUMENT_SERVER_JWT_SECRET:-test_ds_jwt_secret_placeholder}
+      - JWT_HEADER=Authorization
+      - JWT_IN_BODY=true
+      - WOPI_ENABLED=true
+      - WOPI_HOST=ocis:9200
+    volumes:
+      - documentserver-data:/var/www/onlyoffice/documentserver/Data
+      - documentserver-logs:/var/log/onlyoffice
+    networks:
+      - test-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost/hosting/discovery"]
+      interval: 10s
+      timeout: 5s
+      start_period: 120s  # C++ startup is slow
+      retries: 30
+
+  # ===========================================================================
+  # OCIS - ownCloud Infinite Scale (WOPI Host)
+  # ===========================================================================
+  ocis:
+    image: owncloud/ocis:5.0
+    container_name: test-ocis
+    hostname: ocis
+    restart: "no"
+    ports:
+      - "9200:9200"
+    environment:
+      # Domain and URLs
+      - OCIS_DOMAIN=${OCIS_DOMAIN:-localhost}
+      - OCIS_URL=${OCIS_URL:-http://localhost:9200}
+      - PROXY_TLS=${PROXY_TLS:-false}
+      
+      # JWT (must match Document Server)
+      - OCIS_JWT_SECRET=${OCIS_JWT_SECRET:-test_ocis_jwt_secret_placeholder}
+      
+      # Storage
+      - STORAGE_HOME_DRIVER=owncloud
+      - STORAGE_USERS_DRIVER=owncloud
+      
+      # Authentication
+      - AUTHENTICATION_HANDLERS=basic
+      - IDM_CREATE_DEMO_USERS=true
+      
+      # Logging
+      - OCIS_LOG_LEVEL=warn
+      - OCIS_LOG_PRETTY=true
+      
+      # WOPI Collaboration
+      - COLLABORATION_WOPI_SRC=http://localhost:9200
+      - COLLABORATION_APP_ADDR=http://documentserver:80
+      - COLLABORATION_APP_NAME=euro_Office Document Server
+    volumes:
+      - ocis-data:/var/lib/ocis
+      - ./docker/ocis/web-ui.json:/etc/ocis/web-ui.json:ro
+    networks:
+      - test-network
+    depends_on:
+      documentserver:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9200/health"]
+      interval: 10s
+      timeout: 5s
+      start_period: 60s
+      retries: 30
+
+  # ===========================================================================
+  # Companion - Deployment Dashboard
+  # ===========================================================================
+  companion:
+    build:
+      context: ../eurooffice-opencloud
+      dockerfile: Dockerfile
+    container_name: test-companion
+    hostname: companion
+    restart: "no"
+    ports:
+      - "3000:3000"
+    environment:
+      - PORT=3000
+      - NODE_ENV=test
+      - OCIS_DOMAIN=${OCIS_DOMAIN:-localhost}
+      - DOCUMENT_SERVER_DOMAIN=${DOCUMENT_SERVER_DOMAIN:-localhost}
+      - OCIS_JWT_SECRET=${OCIS_JWT_SECRET:-test_ocis_jwt_secret_placeholder}
+      - DOCUMENT_SERVER_JWT_SECRET=${DOCUMENT_SERVER_JWT_SECRET:-test_ds_jwt_secret_placeholder}
+      - OCIS_INTERNAL_PORT=9200
+      - DOCUMENT_SERVER_INTERNAL_PORT=80
+      - OCIS_DATA_DIR=./data/ocis
+      - DOCUMENT_SERVER_DATA_DIR=./data/documentserver
+      - ENABLE_SSL=false
+      - ENABLE_METRICS=false
+      - ENABLE_LOGS=true
+    volumes:
+      - companion-data:/app/data
+    networks:
+      - test-network
+    depends_on:
+      ocis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:3000/api/health"]
+      interval: 10s
+      timeout: 5s
+      start_period: 30s
+      retries: 30
+
+# =============================================================================
+# Networks
+# =============================================================================
+
+networks:
+  test-network:
+    driver: bridge
+    name: eurooffice-test-network
+
+# =============================================================================
+# Volumes
+# =============================================================================
+
+volumes:
+  documentserver-data:
+    name: test-documentserver-data
+  documentserver-logs:
+    name: test-documentserver-logs
+  ocis-data:
+    name: test-ocis-data
+  companion-data:
+    name: test-companion-data

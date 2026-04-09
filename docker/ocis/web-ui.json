@@ -1,0 +1,66 @@
+{
+  "server": "http://localhost:9200",
+  "theme": "euro-office",
+  "openIdConnect": {
+    "metadataUrl": "http://localhost:9200/.well-known/openid-configuration"
+  },
+  "apps": [
+    "files",
+    "settings"
+  ],
+  "options": {
+    "hideSearchBar": false,
+    "disablePreviews": false,
+    "general": {
+      "displayName": "euro_Office Cloud (Test)",
+      "slogan": "E2E Test Instance",
+      "hideVersion": false
+    }
+  },
+  "editor": {
+    "mimeTypeHandlers": [
+      {
+        "extension": [
+          "odt",
+          "fodt",
+          "ott",
+          "doc",
+          "docx",
+          "docm",
+          "dot",
+          "dotx",
+          "dotm",
+          "odp",
+          "fodp",
+          "otp",
+          "ppt",
+          "pptx",
+          "pptm",
+          "pot",
+          "potx",
+          "potm",
+          "pps",
+          "ppsx",
+          "ppsm",
+          "ods",
+          "fods",
+          "ots",
+          "xls",
+          "xlsx",
+          "xlsm",
+          "xlt",
+          "xltx",
+          "xltm",
+          "csv",
+          "rtf",
+          "txt"
+        ],
+        "handler": {
+          "url": "/wopi",
+          "openNewTab": true,
+          "hasMenuEntry": true
+        }
+      }
+    ]
+  }
+}
